@@ -1,0 +1,6 @@
+{
+    "require": {
+        "nette/php-generator": "^3.6"
+    },
+     "bin": ["generate.php"]
+}
