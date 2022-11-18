@@ -1,6 +1,7 @@
 {
+    "name": "anggara-kaskus/gut",
     "require": {
         "nette/php-generator": "^3.6"
     },
-     "bin": ["generate.php"]
+    "bin": ["generate.php"]
 }
