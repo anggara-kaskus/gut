@@ -50,6 +50,7 @@ class EntityTestGenerator
 		$method->setProtected()->setReturnType('void');
 		$method->addBody('$this->assocArray = [];');
 
+		$this->print('Detecting class attributes from setter methods...');
 		foreach ($this->publicMethods as $publicMethod) {
 			$methodName = $publicMethod->getShortName();
 
@@ -69,7 +70,7 @@ class EntityTestGenerator
 					$returnType = null;
 				}
 
-				$this->print("Found class attribute: {$attribute} ({$returnType})");
+				$this->print("  - {$attribute} (" . ($returnType ?: 'assumed string') . ')');
 
 				switch ($returnType) {
 					case 'float':

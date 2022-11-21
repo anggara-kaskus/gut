@@ -35,10 +35,10 @@ class Gut
 
 	private function runUnitTest($targetFile): void
 	{
-		$this->print('Running unit test against generated file...');
+		$this->print("\nRunning unit test against generated file...");
 
 		$returnCode = 0;
-		passthru("./vendor/kaskus/kaskus-phar/archive/phpunit --color=always {$targetFile}", $returnCode);
+		passthru("./vendor/kaskus/kaskus-phar/archive/phpunit --testdox --color=always {$targetFile}", $returnCode);
 
 		if (0 != $returnCode) {
 			$this->print(PHP_EOL . PHP_EOL . 'Unfortunately, there are some test errors we could not fix. Please check generated test file.');
