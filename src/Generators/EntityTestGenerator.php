@@ -1,8 +1,10 @@
-#!env php
 <?php
 namespace Gut\Generators;
 
 use Kaskus\Forum\tests\Utility\KaskusTestCase;
+use Nette\PhpGenerator\PhpNamespace;
+use ReflectionClass;
+use ReflectionMethod;
 
 class EntityTestGenerator
 {
@@ -14,7 +16,7 @@ class EntityTestGenerator
 		$this->targetClass = $targetClass;
 		$this->reflection = new ReflectionClass($targetClass);
 		$this->baseClassName = str_replace($this->reflection->getNamespaceName() . '\\', '', $this->reflection->getName());
-		$this->namespace = new Nette\PhpGenerator\PhpNamespace($this->reflection->getNamespaceName());
+		$this->namespace = new PhpNamespace($this->reflection->getNamespaceName());
 		$this->populatePublicMethods();
 	}
 

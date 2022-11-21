@@ -1,17 +1,29 @@
 #!env php
 <?php
-require_once $_composer_autoload_path ?? dirname(__DIR__) . '/vendor/autoload.php';
+require_once $_composer_autoload_path ?? dirname(__DIR__) . '/autoload.php';
 
+use Gut\ClassDetector;
 use Gut\Generators\EntityTestGenerator;
 
 if (empty($argv[1])) {
-	exit('Usage: ' . __FILE__ . ' <Fully qualified class name>' . PHP_EOL);
+	exit('Usage: ' . __FILE__ . ' /full/path/to/target/file.php' . PHP_EOL);
 }
 
-$targetClass = $argv[1];
-if (!class_exists($targetClass)) {
-	exit('Class ' . $targetClass . ' does not exist' . PHP_EOL);
+$sourceFile = $argv[1];
+$cd = new ClassDetector($sourceFile);
+
+switch ($cd->getObjectType()) {
+	case ClassDetector::TYPE_ENTITY:
+		$generator = new EntityTestGenerator($cd->getFullClassName());
+		$targetFile = str_replace(['src/', '.php'], ['tests/', 'Test.php'], $sourceFile);
+		if ($result = $generator->generate()) {
+			file_put_contents($targetFile, $result);
+		}
+
+		break;
+
+	default:
+		echo 'Unhandled object type: ' . $cd->getObjectType();
 }
 
-$generator = new EntityTestGenerator($targetClass);
-echo $generator->generate();
+passthru("./vendor/kaskus/kaskus-phar/archive/phpunit {$targetFile}");

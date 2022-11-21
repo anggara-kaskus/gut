@@ -8,5 +8,5 @@
 			"Gut\\": "src/"
 		}
 	},
-    "bin": ["generate.php"]
+    "bin": ["gut"]
 }
