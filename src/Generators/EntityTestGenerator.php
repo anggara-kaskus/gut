@@ -1,21 +1,8 @@
 #!env php
 <?php
-
-require_once $_composer_autoload_path ?? dirname(__DIR__) . '/vendor/autoload.php';
+namespace Gut\Generators;
 
 use Kaskus\Forum\tests\Utility\KaskusTestCase;
-
-if (empty($argv[1])) {
-	exit('Usage: ' . __FILE__ . ' <Fully qualified class name>' . PHP_EOL);
-}
-
-$targetClass = $argv[1];
-if (!class_exists($targetClass)) {
-	exit('Class ' . $targetClass . ' does not exist' . PHP_EOL);
-}
-
-$generator = new EntityTestGenerator($targetClass);
-echo $generator->generate();
 
 class EntityTestGenerator
 {

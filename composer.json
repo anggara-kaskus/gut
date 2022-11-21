@@ -3,5 +3,10 @@
     "require": {
         "nette/php-generator": "^3.6"
     },
+    "autoload": {
+		"psr-4": {
+			"Gut\\": "src/"
+		}
+	},
     "bin": ["generate.php"]
 }
