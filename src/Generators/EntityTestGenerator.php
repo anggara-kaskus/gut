@@ -1,6 +1,7 @@
 <?php
 namespace Gut\Generators;
 
+use Gut\Output;
 use Kaskus\Forum\tests\Utility\KaskusTestCase;
 use Nette\PhpGenerator\PhpNamespace;
 use ReflectionClass;
@@ -8,6 +9,8 @@ use ReflectionMethod;
 
 class EntityTestGenerator
 {
+	use Output;
+
 	private $reflection;
 	private $output = '<?php' . PHP_EOL;
 
@@ -52,7 +55,7 @@ class EntityTestGenerator
 
 			if ('set' == substr($methodName, 0, 3)) {
 				$attribute = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', substr($methodName, 3)));
-				$getterMethodName = preg_replace('/^(set|is)/', 'get', $methodName);
+				$getterMethodName = preg_replace('/^set/', '', $methodName);
 
 				if ('id' == $attribute) {
 					$attribute = '_id';
@@ -65,6 +68,8 @@ class EntityTestGenerator
 				} else {
 					$returnType = null;
 				}
+
+				$this->print("Found class attribute: {$attribute} ({$returnType})");
 
 				switch ($returnType) {
 					case 'float':
@@ -109,7 +114,13 @@ class EntityTestGenerator
 					break;
 
 				case 'set' == substr($methodName, 0, 3):
-					$getterMethodName = preg_replace('/^set/', 'get', $methodName);
+					$getterMethodName = preg_replace('/^set/', '', $methodName);
+
+					if (method_exists($this->targetClass, 'get' . $getterMethodName)) {
+						$getterMethodName = 'get' . $getterMethodName;
+					} elseif (method_exists($this->targetClass, 'is' . $getterMethodName)) {
+						$getterMethodName = 'is' . $getterMethodName;
+					}
 					$testMethod = $this->testClass->addMethod('test_' . $methodName . '_AllOk_ValueSet');
 					$testMethod->setPublic()->setReturnType('void');
 					$testMethod->addBody('$entity = $this->createEntity();');
@@ -121,11 +132,15 @@ class EntityTestGenerator
 
 				case 'get' == substr($methodName, 0, 3):
 				case 'is' == substr($methodName, 0, 2):
-					$testMethod = $this->testClass->addMethod('test_' . $methodName . '_AllOk_ReturnCorrectValue');
-					$testMethod->setPublic()->setReturnType('void');
-					$testMethod->addBody('$entity = $this->createEntity();');
-					$testMethod->addBody("\$value = \$entity->{$methodName}();");
-					$testMethod->addBody("\$this->assertEquals(\$this->assocArray['{$this->attributes[$methodName]}'], \$value);");
+					preg_match('/^(get|is)(.*)/', $methodName, $matches);
+
+					if (!empty($this->attributes[$methodName])) {
+						$testMethod = $this->testClass->addMethod('test_' . $methodName . '_AllOk_ReturnCorrectValue');
+						$testMethod->setPublic()->setReturnType('void');
+						$testMethod->addBody('$entity = $this->createEntity();');
+						$testMethod->addBody("\$value = \$entity->{$methodName}();");
+						$testMethod->addBody("\$this->assertEquals(\$this->assocArray['{$this->attributes[$matches[2]]}'], \$value);");
+					}
 
 					break;
 
