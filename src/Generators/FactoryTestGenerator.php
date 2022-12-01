@@ -1,25 +1,20 @@
 <?php
 namespace Gut\Generators;
 
-use Gut\Output;
-use Kaskus\Forum\tests\Utility\KaskusTestCase;
 use Nette\PhpGenerator\PhpNamespace;
 use ReflectionClass;
-use ReflectionMethod;
 
-class EntityTestGenerator extends BaseGenerator
+class FactoryTestGenerator extends BaseGenerator
 {
-	use Output;
-
-	private $reflection;
-	private $output = '<?php' . PHP_EOL;
-
 	public function __construct(string $targetClass)
 	{
 		$this->targetClass = $targetClass;
 		$this->reflection = new ReflectionClass($targetClass);
 		$this->baseClassName = str_replace($this->reflection->getNamespaceName() . '\\', '', $this->reflection->getName());
 		$this->namespace = new PhpNamespace($this->reflection->getNamespaceName());
+
+		$this->uses = $this->namespace->getUses();
+
 		$this->populatePublicMethods();
 	}
 
@@ -33,71 +28,37 @@ class EntityTestGenerator extends BaseGenerator
 		return $this->output . $this->namespace;
 	}
 
-	private function setNamespace(): void
-	{
-		$this->namespace->addUse(KaskusTestCase::class);
-	}
-
-	private function createClass(): void
-	{
-		$this->testClass = $this->namespace->addClass($this->baseClassName . 'Test');
-		$this->testClass->setExtends(KaskusTestCase::class);
-	}
-
 	private function createSetUpMethod(): void
 	{
 		$method = $this->testClass->addMethod('setUp');
 		$method->setProtected()->setReturnType('void');
 		$method->addBody('$this->assocArray = [];');
 
-		$this->print('Detecting class attributes from setter methods...');
+		$this->print('Detecting class methods...');
+
+		$classMethods = [];
+
 		foreach ($this->publicMethods as $publicMethod) {
 			$methodName = $publicMethod->getShortName();
+			$classMethods[$methodName] = [
+				'params' => [],
+				'return' => null
+			];
 
-			if ('set' == substr($methodName, 0, 3)) {
-				$attribute = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', substr($methodName, 3)));
-				$getterMethodName = preg_replace('/^set/', '', $methodName);
-
-				if ('id' == $attribute) {
-					$attribute = '_id';
+			foreach ($publicMethod->getParameters() as $param) {
+				if (!$param) {
+					continue;
 				}
+				$type = $param->getType();
+				$classMethods[$methodName]['params'][$param->getName()] = $type ? $type->getName() : null;
+			}
 
-				$this->attributes[$getterMethodName] = $attribute;
-
-				if ($type = $publicMethod->getParameters()[0]->getType()) {
-					$returnType = str_replace('?', '', $type->getName());
-				} else {
-					$returnType = null;
-				}
-
-				$this->print("  - {$attribute} (" . ($returnType ?: 'unspecified') . ')');
-
-				switch ($returnType) {
-					case 'float':
-					case 'int':
-						$method->addBody("\$this->assocArray['{$attribute}'] = rand(100, 999);");
-						$this->replacement[$methodName] = 'rand(100, 999);';
-
-						break;
-
-					case 'string':
-					case null:
-						$method->addBody("\$this->assocArray['{$attribute}'] = uniqid();");
-						$this->replacement[$methodName] = 'uniqid();';
-
-						break;
-
-					case 'bool':
-						$method->addBody("\$this->assocArray['{$attribute}'] = false;");
-						$this->replacement[$methodName] = 'true;';
-
-						break;
-
-					default:
-						throw new Exception("Unhandled return type: {$methodName}()" . $publicMethod->getReturnType());
-				}
+			if ($type = $publicMethod->getReturnType()) {
+				$classMethods[$methodName]['return'] = $type->getName();
 			}
 		}
+
+		var_dump($classMethods);
 
 		$method = $this->testClass->addMethod('createEntity');
 		$method->setPrivate()->setReturnType($this->targetClass);
@@ -152,10 +113,5 @@ class EntityTestGenerator extends BaseGenerator
 					break;
 			}
 		}
-	}
-
-	private function populatePublicMethods(): void
-	{
-		$this->publicMethods = $this->reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 	}
 }

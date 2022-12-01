@@ -2,6 +2,7 @@
 namespace Gut;
 
 use Gut\Generators\EntityTestGenerator;
+use Gut\Generators\FactoryTestGenerator;
 
 class Gut
 {
@@ -16,21 +17,27 @@ class Gut
 		$this->print("Detected class: {$fullClassName}");
 		$this->print("Object type is: {$objectType}");
 
+		$targetFile = str_replace(['src/', '.php'], ['tests/', 'Test.php'], $sourceFile);
 		switch ($objectType) {
 			case ClassDetector::TYPE_ENTITY:
 				$generator = new EntityTestGenerator($fullClassName);
-				$targetFile = str_replace(['src/', '.php'], ['tests/', 'Test.php'], $sourceFile);
-				if ($result = $generator->generate()) {
-					file_put_contents($targetFile, $result);
-					$this->print("Successfully created test file: {$targetFile}");
-					$this->runUnitTest($targetFile);
-				}
+				break;
 
+			case ClassDetector::TYPE_FACTORY:
+				$generator = new FactoryTestGenerator($fullClassName);
 				break;
 
 			default:
 				echo 'Unhandled object type: ' . $cd->getObjectType();
+				return;
 		}
+
+		if ($result = $generator->generate()) {
+			file_put_contents($targetFile, $result);
+			$this->print("Successfully created test file: {$targetFile}");
+			$this->runUnitTest($targetFile);
+		}
+
 	}
 
 	private function runUnitTest($targetFile): void
