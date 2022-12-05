@@ -1,6 +1,8 @@
 <?php
 namespace Gut\Generator;
 
+use Exception;
+
 class ServiceTestGenerator extends BaseGenerator
 {
 	protected function createSetUpMethod(): void
@@ -83,8 +85,6 @@ class ServiceTestGenerator extends BaseGenerator
 			$testMethod->addBody('$service = $this->createService();');
 			$testMethod->addBody('$result = $service->' . $methodName . '(' . implode(', ', $params) . ');');
 			$testMethod->setPublic()->setReturnType('void');
-
-			break;
 		}
 	}
 }

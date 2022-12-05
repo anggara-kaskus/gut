@@ -1,6 +1,8 @@
 <?php
 namespace Gut\Generator;
 
+use Exception;
+
 class RepositoryTestGenerator extends BaseGenerator
 {
 	protected function createSetUpMethod(): void
@@ -83,8 +85,6 @@ class RepositoryTestGenerator extends BaseGenerator
 			$testMethod->addBody('$repo = $this->createRepository();');
 			$testMethod->addBody('$result = $repo->' . $methodName . '(' . implode(', ', $params) . ');');
 			$testMethod->setPublic()->setReturnType('void');
-
-			break;
 		}
 	}
 }

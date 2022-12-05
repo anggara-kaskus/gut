@@ -1,6 +1,8 @@
 <?php
 namespace Gut\Generator;
 
+use Exception;
+
 class PresenterTestGenerator extends BaseGenerator
 {
 	protected function createSetUpMethod(): void
@@ -22,7 +24,12 @@ class PresenterTestGenerator extends BaseGenerator
 						$type = $this->getParameterType($param);
 						$this->namespace->addUse($type);
 						$shortType = $this->getShortClassName($type);
-						$method->addBody("\$this->{$paramName} = \$this->getMockWithoutConstructor({$shortType}::class);");
+
+						if ('CI_Base' == $type) {
+							$method->addBody("\$this->{$paramName} = new CI_Base();");
+						} else {
+							$method->addBody("\$this->{$paramName} = \$this->getMockWithoutConstructor({$shortType}::class);");
+						}
 
 						$ruleParams[] = '$this->' . $paramName;
 					}
@@ -77,14 +84,17 @@ class PresenterTestGenerator extends BaseGenerator
 						break;
 
 					default:
-						throw new Exception("Unhandled parameter type: {$methodName}() -> {$type} \$" . $param->getName());
+						if (class_exists($type)) {
+							$this->namespace->addUse($type);
+							$testMethod->addBody('$' . $param->getName() . ' = $this->getMockWithoutConstructor(' . $this->getShortClassName($type) . '::class);');
+						} else {
+							throw new Exception("Unhandled parameter type: {$methodName}() -> {$type} \$" . $param->getName());
+						}
 				}
 			}
 			$testMethod->addBody('$presenter = $this->createPresenter();');
 			$testMethod->addBody('$result = $presenter->' . $methodName . '(' . implode(', ', $params) . ');');
 			$testMethod->setPublic()->setReturnType('void');
-
-			break;
 		}
 	}
 }
