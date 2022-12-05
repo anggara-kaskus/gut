@@ -1,34 +1,11 @@
 <?php
 namespace Gut\Generator;
 
-use Nette\PhpGenerator\PhpNamespace;
-use ReflectionClass;
+use Exception;
 
 class FactoryTestGenerator extends BaseGenerator
 {
-	public function __construct(string $targetClass)
-	{
-		$this->targetClass = $targetClass;
-		$this->reflection = new ReflectionClass($targetClass);
-		$this->baseClassName = str_replace($this->reflection->getNamespaceName() . '\\', '', $this->reflection->getName());
-		$this->namespace = new PhpNamespace($this->reflection->getNamespaceName());
-
-		$this->uses = $this->namespace->getUses();
-
-		$this->populatePublicMethods();
-	}
-
-	public function generate(): string
-	{
-		$this->setNamespace();
-		$this->createClass();
-		$this->createSetUpMethod();
-		$this->createTestMethods();
-
-		return $this->output . $this->namespace;
-	}
-
-	private function createSetUpMethod(): void
+	protected function createSetUpMethod(): void
 	{
 		$method = $this->testClass->addMethod('setUp');
 		$method->setProtected()->setReturnType('void');
@@ -58,60 +35,65 @@ class FactoryTestGenerator extends BaseGenerator
 			}
 		}
 
-		var_dump($classMethods);
-
-		$method = $this->testClass->addMethod('createEntity');
-		$method->setPrivate()->setReturnType($this->targetClass);
+		$method = $this->testClass->addMethod('createFactory');
+		$method->setprotected()->setReturnType($this->targetClass);
 		$method->addBody("\$entity = new {$this->baseClassName}(\$this->assocArray);");
 		$method->addBody('return $entity;');
 	}
 
-	private function createTestMethods(): void
+	protected function createTestMethods(): void
 	{
 		foreach ($this->publicMethods as $publicMethod) {
 			$methodName = $publicMethod->getShortName();
 
-			switch (true) {
-				case in_array($methodName, ['__construct', 'toArray', 'isNew']):
-					break;
+			$testMethod = $this->testClass->addMethod('test_' . $methodName . '_case_expectedOutcome');
+			$returnType = $publicMethod->getReturnType();
 
-				case 'set' == substr($methodName, 0, 3):
-					$getterMethodName = preg_replace('/^set/', '', $methodName);
+			$params = [];
 
-					if (method_exists($this->targetClass, 'get' . $getterMethodName)) {
-						$getterMethodName = 'get' . $getterMethodName;
-					} elseif (method_exists($this->targetClass, 'is' . $getterMethodName)) {
-						$getterMethodName = 'is' . $getterMethodName;
-					}
-					$testMethod = $this->testClass->addMethod('test_' . $methodName . '_AllOk_ValueSet');
-					$testMethod->setPublic()->setReturnType('void');
-					$testMethod->addBody('$entity = $this->createEntity();');
-					$testMethod->addBody("\$newValue = {$this->replacement[$methodName]}");
-					$testMethod->addBody("\$entity->{$methodName}(\$newValue);");
-					$testMethod->addBody("\$this->assertEquals(\$entity->{$getterMethodName}(), \$newValue);");
+			foreach ($publicMethod->getParameters() as $param) {
+				$type = $this->getParameterType($param);
+				$params[] = '$' . $param->getName();
 
-					break;
+				switch ($type) {
+					case 'float':
+					case 'int':
+						$testMethod->addBody('$' . $param->getName() . ' = rand(100, 999);');
 
-				case 'get' == substr($methodName, 0, 3):
-				case 'is' == substr($methodName, 0, 2):
-					preg_match('/^(get|is)(.*)/', $methodName, $matches);
+						break;
 
-					if (!empty($this->attributes[$methodName])) {
-						$testMethod = $this->testClass->addMethod('test_' . $methodName . '_AllOk_ReturnCorrectValue');
-						$testMethod->setPublic()->setReturnType('void');
-						$testMethod->addBody('$entity = $this->createEntity();');
-						$testMethod->addBody("\$value = \$entity->{$methodName}();");
-						$testMethod->addBody("\$this->assertEquals(\$this->assocArray['{$this->attributes[$matches[2]]}'], \$value);");
-					}
+					case 'string':
+					case null:
+						$testMethod->addBody('$' . $param->getName() . ' = uniqid();');
 
-					break;
+						break;
 
-				default:
-					$testMethod = $this->testClass->addMethod('test_' . $methodName . '_case_expectedOutcome');
-					$testMethod->setPublic()->setReturnType('void');
+					case 'bool':
+						$testMethod->addBody('$' . $param->getName() . ' = false;');
 
-					break;
+						break;
+
+					case 'array':
+						$testMethod->addBody('$' . $param->getName() . ' = [];');
+
+						break;
+
+					default:
+						throw new Exception("Unhandled parameter type: {$methodName}() -> {$type} \$" . $param->getName());
+				}
 			}
+
+			$testMethod->addBody(PHP_EOL . '$factory = $this->createFactory();');
+			$testMethod->addBody('$result = $factory->' . $methodName . '(' . implode(', ', $params) . ');');
+
+			if (!$this->isPrimitiveType($returnType->getName())) {
+				$this->namespace->addUse($returnType->getName());
+				$testMethod->addBody('$this->assertInstanceOf(' . $this->getShortClassName($returnType->getName()) . '::class, $result);');
+			} else {
+				$testMethod->addBody('//$this->assertEquals("", $result);');
+			}
+
+			$testMethod->setPublic()->setReturnType('void');
 		}
 	}
 }

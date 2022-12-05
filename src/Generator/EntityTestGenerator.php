@@ -1,49 +1,8 @@
 <?php
 namespace Gut\Generator;
 
-use Gut\Output;
-use Kaskus\Forum\tests\Utility\KaskusTestCase;
-use Nette\PhpGenerator\PhpNamespace;
-use ReflectionClass;
-use ReflectionMethod;
-
 class EntityTestGenerator extends BaseGenerator
 {
-	use Output;
-
-	protected $reflection;
-	protected $output = '<?php' . PHP_EOL;
-
-	public function __construct(string $targetClass)
-	{
-		$this->targetClass = $targetClass;
-		$this->reflection = new ReflectionClass($targetClass);
-		$this->baseClassName = str_replace($this->reflection->getNamespaceName() . '\\', '', $this->reflection->getName());
-		$this->namespace = new PhpNamespace($this->reflection->getNamespaceName());
-		$this->populatePublicMethods();
-	}
-
-	public function generate(): string
-	{
-		$this->setNamespace();
-		$this->createClass();
-		$this->createSetUpMethod();
-		$this->createTestMethods();
-
-		return $this->output . $this->namespace;
-	}
-
-	protected function setNamespace(): void
-	{
-		$this->namespace->addUse(KaskusTestCase::class);
-	}
-
-	protected function createClass(): void
-	{
-		$this->testClass = $this->namespace->addClass($this->baseClassName . 'Test');
-		$this->testClass->setExtends(KaskusTestCase::class);
-	}
-
 	protected function createSetUpMethod(): void
 	{
 		$method = $this->testClass->addMethod('setUp');
@@ -69,6 +28,8 @@ class EntityTestGenerator extends BaseGenerator
 				} else {
 					$returnType = null;
 				}
+
+				$returnType = $this->getParameterType($publicMethod->getParameters()[0]);
 
 				$this->print("  - {$attribute} (" . ($returnType ?: 'unspecified') . ')');
 
@@ -152,10 +113,5 @@ class EntityTestGenerator extends BaseGenerator
 					break;
 			}
 		}
-	}
-
-	protected function populatePublicMethods(): void
-	{
-		$this->publicMethods = $this->reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 	}
 }
