@@ -3,6 +3,7 @@ namespace Gut;
 
 use Gut\Generator\EntityTestGenerator;
 use Gut\Generator\FactoryTestGenerator;
+use Gut\Generator\RuleTestGenerator;
 
 class Gut
 {
@@ -10,9 +11,9 @@ class Gut
 
 	public function generate($sourceFile): void
 	{
-		$cd = new ClassDetector($sourceFile);
-		$fullClassName = $cd->getFullClassName();
-		$objectType = $cd->getObjectType();
+		$classDetector = new ClassDetector($sourceFile);
+		$fullClassName = $classDetector->getFullClassName();
+		$objectType = $classDetector->getObjectType();
 
 		$this->print("Detected class: {$fullClassName}");
 		$this->print("Object type is: {$objectType}");
@@ -27,6 +28,11 @@ class Gut
 
 			case ClassDetector::TYPE_FACTORY:
 				$generator = new FactoryTestGenerator($fullClassName);
+
+				break;
+
+			case ClassDetector::TYPE_RULE:
+				$generator = new RuleTestGenerator($fullClassName);
 
 				break;
 

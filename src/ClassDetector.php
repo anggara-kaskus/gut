@@ -4,9 +4,11 @@ namespace Gut;
 class ClassDetector
 {
 	public const TYPE_ENTITY = 'Entity';
-	public const TYPE_SERVICE = 'Service';
 	public const TYPE_FACTORY = 'Factory';
+	public const TYPE_RULE = 'Rule';
+	public const TYPE_SERVICE = 'Service';
 	public const TYPE_REPOSITORY = 'Repository';
+
 	private $baseNamespace = '';
 	private $namespace = '';
 	private $class = '';

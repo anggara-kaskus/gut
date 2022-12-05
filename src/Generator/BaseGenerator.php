@@ -4,6 +4,8 @@ namespace Gut\Generator;
 
 use Gut\Output;
 use Kaskus\Forum\tests\Utility\KaskusTestCase;
+use Nette\PhpGenerator\PhpNamespace;
+use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
 
