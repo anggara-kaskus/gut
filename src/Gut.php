@@ -20,7 +20,11 @@ class Gut
 		$this->print("Detected class: {$fullClassName}");
 		$this->print("Object type is: {$objectType}");
 
-		$targetFile = str_replace(['src/', '.php'], ['tests/', 'Test.php'], $sourceFile);
+		if (ClassDetector::TYPE_PRESENTER == $objectType) {
+			$targetFile = str_replace(['src/', '.php'], ['test/', 'Test.php'], $sourceFile);
+		} else {
+			$targetFile = str_replace(['src/', '.php'], ['tests/', 'Test.php'], $sourceFile);
+		}
 
 		switch ($objectType) {
 			case ClassDetector::TYPE_ENTITY:
@@ -55,9 +59,9 @@ class Gut
 		}
 
 		if ($result = $generator->generate()) {
-			$targetFolder = \dirname($targetFile);
+			$targetFolder = dirname($targetFile);
 			if (!file_exists($targetFolder)) {
-				\mkdir($targetFolder, 0755, true);
+				mkdir($targetFolder, 0755, true);
 			}
 			file_put_contents($targetFile, $result);
 			$this->print("Successfully created test file: {$targetFile}");
