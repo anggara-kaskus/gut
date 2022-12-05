@@ -1,5 +1,5 @@
 <?php
-namespace Gut\Generators;
+namespace Gut\Generator;
 
 use Gut\Output;
 use Kaskus\Forum\tests\Utility\KaskusTestCase;
@@ -11,8 +11,8 @@ class EntityTestGenerator extends BaseGenerator
 {
 	use Output;
 
-	private $reflection;
-	private $output = '<?php' . PHP_EOL;
+	protected $reflection;
+	protected $output = '<?php' . PHP_EOL;
 
 	public function __construct(string $targetClass)
 	{
@@ -33,18 +33,18 @@ class EntityTestGenerator extends BaseGenerator
 		return $this->output . $this->namespace;
 	}
 
-	private function setNamespace(): void
+	protected function setNamespace(): void
 	{
 		$this->namespace->addUse(KaskusTestCase::class);
 	}
 
-	private function createClass(): void
+	protected function createClass(): void
 	{
 		$this->testClass = $this->namespace->addClass($this->baseClassName . 'Test');
 		$this->testClass->setExtends(KaskusTestCase::class);
 	}
 
-	private function createSetUpMethod(): void
+	protected function createSetUpMethod(): void
 	{
 		$method = $this->testClass->addMethod('setUp');
 		$method->setProtected()->setReturnType('void');
@@ -105,7 +105,7 @@ class EntityTestGenerator extends BaseGenerator
 		$method->addBody('return $entity;');
 	}
 
-	private function createTestMethods(): void
+	protected function createTestMethods(): void
 	{
 		foreach ($this->publicMethods as $publicMethod) {
 			$methodName = $publicMethod->getShortName();
@@ -154,7 +154,7 @@ class EntityTestGenerator extends BaseGenerator
 		}
 	}
 
-	private function populatePublicMethods(): void
+	protected function populatePublicMethods(): void
 	{
 		$this->publicMethods = $this->reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 	}

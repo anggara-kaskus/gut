@@ -1,5 +1,5 @@
 <?php
-namespace Gut\Generators;
+namespace Gut\Generator;
 
 use Nette\PhpGenerator\PhpNamespace;
 use ReflectionClass;
