@@ -8,6 +8,7 @@ class ClassDetector
 	public const TYPE_RULE = 'Rule';
 	public const TYPE_SERVICE = 'Service';
 	public const TYPE_REPOSITORY = 'Repository';
+	public const TYPE_PRESENTER = 'Presenter';
 
 	private $baseNamespace = '';
 	private $namespace = '';

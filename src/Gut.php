@@ -3,7 +3,9 @@ namespace Gut;
 
 use Gut\Generator\EntityTestGenerator;
 use Gut\Generator\FactoryTestGenerator;
-use Gut\Generator\RuleTestGenerator;
+use Gut\Generator\PresenterTestGenerator;
+use Gut\Generator\RepositoryTestGenerator;
+use Gut\Generator\ServiceTestGenerator;
 
 class Gut
 {
@@ -31,8 +33,18 @@ class Gut
 
 				break;
 
-			case ClassDetector::TYPE_RULE:
-				$generator = new RuleTestGenerator($fullClassName);
+			case ClassDetector::TYPE_SERVICE:
+				$generator = new ServiceTestGenerator($fullClassName);
+
+				break;
+
+			case ClassDetector::TYPE_REPOSITORY:
+				$generator = new RepositoryTestGenerator($fullClassName);
+
+				break;
+
+			case ClassDetector::TYPE_PRESENTER:
+				$generator = new PresenterTestGenerator($fullClassName);
 
 				break;
 
