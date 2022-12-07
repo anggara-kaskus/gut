@@ -11,7 +11,7 @@ class FactoryTestGenerator extends BaseGenerator
 		$method->setProtected()->setReturnType('void');
 		$method->addBody('$this->assocArray = [];');
 
-		$this->print('Detecting class methods...');
+		$this->println('Detecting class methods...');
 
 		$classMethods = [];
 

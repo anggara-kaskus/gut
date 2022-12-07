@@ -9,7 +9,7 @@ class EntityTestGenerator extends BaseGenerator
 		$method->setProtected()->setReturnType('void');
 		$method->addBody('$this->assocArray = [];');
 
-		$this->print('Detecting class attributes from setter methods...');
+		$this->println('Detecting class attributes from setter methods...');
 		foreach ($this->publicMethods as $publicMethod) {
 			$methodName = $publicMethod->getShortName();
 
@@ -31,7 +31,7 @@ class EntityTestGenerator extends BaseGenerator
 
 				$returnType = $this->getParameterType($publicMethod->getParameters()[0]);
 
-				$this->print("  - {$attribute} (" . ($returnType ?: 'unspecified') . ')');
+				$this->println("  - {$attribute} (" . ($returnType ?: 'unspecified') . ')');
 
 				switch ($returnType) {
 					case 'float':

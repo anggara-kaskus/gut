@@ -8,7 +8,7 @@ class RuleTestGenerator extends BaseGenerator
 		$method = $this->testClass->addMethod('setUp');
 		$method->setProtected()->setReturnType('void');
 
-		$this->print('Detecting required dependencies for constructor...');
+		$this->println('Detecting required dependencies for constructor...');
 		$ruleParams = [];
 		foreach ($this->publicMethods as $publicMethod) {
 			$methodName = $publicMethod->getShortName();
